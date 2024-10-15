@@ -1,5 +1,6 @@
 package net.cwmediagroup.config;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,7 +20,7 @@ public class Config {
     public String mySQLConnection;
     public JSONArray locations;
 
-    public void initConfiguration(String configPath, Boolean verboseMode) throws RuntimeException {
+    public void initConfiguration(String configPath, @NotNull Boolean verboseMode) throws RuntimeException {
 
         try {
             if (verboseMode) {

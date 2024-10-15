@@ -1,6 +1,8 @@
 package net.cwmediagroup;
 
 import net.cwmediagroup.config.Config;
+import net.cwmediagroup.connections.OpenMeteoAPI;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -12,7 +14,8 @@ public class Main {
             String configPath = "config.json"; // Todo: convert to use commandline arguments to provide config path
             Config configuration = new Config();
             configuration.initConfiguration(configPath, verboseMode);
-            boolean test = true;
+            OpenMeteoAPI openMeteoAPI = new OpenMeteoAPI();
+            JSONObject data = openMeteoAPI.getLocationData();
         }catch (RuntimeException e){
             System.out.println(e.getMessage());
             System.exit(1);
