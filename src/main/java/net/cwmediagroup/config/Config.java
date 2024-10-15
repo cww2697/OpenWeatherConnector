@@ -1,22 +1,46 @@
 package net.cwmediagroup.config;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 
 
 public class Config {
 
-    public boolean useMongo;
+    public boolean terminalOutput = false;
+    public boolean useFileOutput = false;
+    public String outputDir;
+    public boolean useMongo = false;
     public String mongoConnection;
-    public boolean useMySQL;
+    public boolean useMySQL = false;
     public String mySQLConnection;
     public JSONArray locations;
 
-    public void loadConfig(String configPath) throws IOException {
+    public void initConfiguration(String configPath, Boolean verboseMode) throws RuntimeException {
+
+        try {
+            if (verboseMode) {
+                System.out.println("Loading configuration from: " + configPath);
+            }
+            this.loadConfig(configPath);
+        } catch (FileNotFoundException e) {
+            System.out.println("Configuration file not found: " + configPath);
+            System.out.println("Running with default configuration...");
+            this.loadDefaultConfig();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (verboseMode) {
+            System.out.println("Configuration successfully loaded");
+        }
+    }
+
+    private void loadConfig(String configPath) throws IOException {
+
         File file = new File(configPath);
         StringBuilder JSON = new StringBuilder();
         try(BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -27,42 +51,58 @@ public class Config {
 
         String jsonString = JSON.toString();
         JSONObject config = new JSONObject(jsonString);
-
-        this.useMongo = config.getBoolean("useMongo");
-        if (this.useMongo) {
-            this.mongoConnection = config.getString("mongoConnection");
-        }
-
-        this.useMySQL = config.getBoolean("useMySQL");
-        if (this.useMySQL) {
-            this.mySQLConnection = config.getString("mySQLConnection");
-        }
-
-        this.locations = config.getJSONArray("locations");
+        this.mapJsonConfig(config);
 
     }
 
-    public void saveConfig(String configPath) throws RuntimeException {
+    private void loadDefaultConfig() {
+        this.terminalOutput = true;
+        this.locations = new JSONArray("[\"Los Angeles, CA\"]");
+    }
 
-        JSONObject config = new JSONObject();
-        config.put("useMongo", this.useMongo);
-        if (this.useMongo) {
-            config.put("mongoConnection", this.mongoConnection);
+    private void mapJsonConfig(JSONObject config) {
+        try {
+            this.useFileOutput = config.getBoolean("useFileOutput");
+        } catch (JSONException e) {
+            this.useFileOutput = false;
         }
-        config.put("useMySQL", this.useMySQL);
-        if (this.useMySQL) {
-            config.put("mySQLConnection", this.mySQLConnection);
-        }
-        config.put("locations", this.locations);
 
-        try(Writer writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(configPath), StandardCharsets.UTF_8
-        ))){
-            config.write(writer);
-        } catch (IOException e) {
+        try{
+            this.useMongo = config.getBoolean("useMongo");
+        } catch (JSONException e) {
+            this.useMongo = false;
+        }
+
+        try {
+            this.useMySQL = config.getBoolean("useMySQL");
+        } catch (JSONException e) {
+            this.useMySQL = false;
+        }
+
+        if (!this.useFileOutput || !this.useMongo || !this.useMySQL) {
+            this.terminalOutput = true;
+        }
+
+        try {
+            if (this.useFileOutput) {
+                this.outputDir = config.getString("outputDir");
+            }
+            if (this.useMySQL) {
+                this.mySQLConnection = config.getString("mySQLConnection");
+            }
+            if (this.useMongo) {
+                this.mongoConnection = config.getString("mongoConnection");
+            }
+
+            try {
+                this.locations = config.getJSONArray("locations");
+            } catch (JSONException e) {
+                this.locations = new JSONArray("[\"Los Angeles, CA\"]");
+            }
+
+        } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-
     }
 
 }
