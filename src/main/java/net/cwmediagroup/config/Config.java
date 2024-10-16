@@ -1,5 +1,6 @@
 package net.cwmediagroup.config;
 
+import net.cwmediagroup.objects.Location;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -7,6 +8,7 @@ import org.json.JSONObject;
 
 
 import java.io.*;
+import java.util.ArrayList;
 
 
 public class Config {
@@ -18,14 +20,11 @@ public class Config {
     public String mongoConnection;
     public boolean useMySQL = false;
     public String mySQLConnection;
-    public JSONArray locations;
+    public ArrayList<Location> locations = new ArrayList<>();
 
-    public void initConfiguration(String configPath, @NotNull Boolean verboseMode) throws RuntimeException {
+    public void initConfiguration(String configPath) throws RuntimeException {
 
         try {
-            if (verboseMode) {
-                System.out.println("Loading configuration from: " + configPath);
-            }
             this.loadConfig(configPath);
         } catch (FileNotFoundException e) {
             System.out.println("Configuration file not found: " + configPath);
@@ -33,10 +32,6 @@ public class Config {
             this.loadDefaultConfig();
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-
-        if (verboseMode) {
-            System.out.println("Configuration successfully loaded");
         }
     }
 
@@ -58,10 +53,10 @@ public class Config {
 
     private void loadDefaultConfig() {
         this.terminalOutput = true;
-        this.locations = new JSONArray("[\"Los Angeles, CA\"]");
+        this.locations.add(new Location("Los Angeles, CA", "34.0522", "-118.2437"));
     }
 
-    private void mapJsonConfig(JSONObject config) {
+    private void mapJsonConfig(@NotNull JSONObject config) {
         try {
             this.useFileOutput = config.getBoolean("useFileOutput");
         } catch (JSONException e) {
@@ -96,9 +91,16 @@ public class Config {
             }
 
             try {
-                this.locations = config.getJSONArray("locations");
+                JSONArray locations = config.getJSONArray("locations");
+                for (int i = 0; i < locations.length(); i++) {
+                    JSONObject jsonLocation = locations.getJSONObject(i);
+                    Location location = new Location(jsonLocation.getString("name"), jsonLocation.getString("lat"), jsonLocation.getString("long"));
+                    this.locations.add(location);
+                }
             } catch (JSONException e) {
-                this.locations = new JSONArray("[\"Los Angeles, CA\"]");
+                if (this.locations.isEmpty()){
+                    this.locations.add(new Location("Los Angeles, CA", "34.0522", "-118.2437"));
+                }
             }
 
         } catch (JSONException e) {
