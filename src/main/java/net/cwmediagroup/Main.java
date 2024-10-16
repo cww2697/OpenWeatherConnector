@@ -1,24 +1,26 @@
 package net.cwmediagroup;
 
 import net.cwmediagroup.config.Config;
-import net.cwmediagroup.connections.OpenMeteoAPI;
-import net.cwmediagroup.objects.Location;
-import net.cwmediagroup.objects.OpenMeteo.OpenMeteoResponse;
-
-import java.io.IOException;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         try{
-            String configPath = "config.json"; // Todo: convert to use commandline arguments to provide config path
+            Options options = new Options();
+            options.parseArguments(args);
             Config configuration = new Config();
-            configuration.initConfiguration(configPath);
+            if(options.generateTemplate){
+                configuration.generateTemplateConfig(options.templateOutput);
+                System.out.println("Generated template config: " + options.templateOutput);
+                System.exit(0);
+            }
+
+            configuration.initConfiguration(options.configPath);
             Processor processor = new Processor(configuration);
             processor.processWeatherRequest();
 
-        }catch (RuntimeException e){
-            System.out.println(e.getMessage());
+        }catch (Throwable e){
+            System.err.println(e.getMessage());
             System.exit(1);
         }
     }

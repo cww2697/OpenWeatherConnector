@@ -22,12 +22,38 @@ public class Config {
     public String mySQLConnection;
     public ArrayList<Location> locations = new ArrayList<>();
 
+    private static final String templateConfig = """
+            {
+              "useMongo": false,
+              "mongoConnection": "",
+              "useMySQL": false,
+              "mySqlConnection": "",
+              "useFileOutput": false,
+              "outputDir": "",
+              "locations": [
+                  {
+                    "name" : "Los Angeles, CA",
+                    "lat": "34.0522",
+                    "long": "-118.2437"
+                  }
+                ]
+            }""";
+
     public void initConfiguration(String configPath) throws RuntimeException {
 
         try {
-            this.loadConfig(configPath);
+            if (!configPath.isEmpty()) {
+                if (!new File(configPath).exists()) {
+                    throw new FileNotFoundException(configPath);
+                }
+                this.loadConfig(configPath);
+            } else {
+                System.out.println("No config file found. Running with default configuration...");
+                this.loadDefaultConfig();
+            }
+
         } catch (FileNotFoundException e) {
-            System.out.println("Configuration file not found: " + configPath);
+            System.err.println("Configuration file not found: " + configPath);
             System.out.println("Running with default configuration...");
             this.loadDefaultConfig();
         } catch (IOException e) {
@@ -104,6 +130,15 @@ public class Config {
             }
 
         } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void generateTemplateConfig(String outputPath) {
+        try(FileWriter file = new FileWriter(outputPath)){
+            file.write(templateConfig);
+            file.flush();
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
