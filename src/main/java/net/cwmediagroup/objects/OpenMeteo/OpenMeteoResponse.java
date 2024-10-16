@@ -1,6 +1,5 @@
 package net.cwmediagroup.objects.OpenMeteo;
 
-import net.cwmediagroup.objects.Location;
 import org.json.JSONObject;
 
 public class OpenMeteoResponse {
