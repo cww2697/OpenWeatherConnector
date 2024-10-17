@@ -1,6 +1,7 @@
 package net.cwmediagroup.config;
 
 import net.cwmediagroup.objects.Location;
+import net.cwmediagroup.services.FileService;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -135,12 +136,8 @@ public class Config {
     }
 
     public void generateTemplateConfig(String outputPath) {
-        try(FileWriter file = new FileWriter(outputPath)){
-            file.write(templateConfig);
-            file.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        FileService fileService = new FileService();
+        fileService.writeJsonFile(outputPath, templateConfig);
     }
 
 }

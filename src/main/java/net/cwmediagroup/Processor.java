@@ -4,6 +4,10 @@ import net.cwmediagroup.config.Config;
 import net.cwmediagroup.connections.OpenMeteoAPI;
 import net.cwmediagroup.objects.Location;
 import net.cwmediagroup.objects.OpenMeteo.OpenMeteoResponse;
+import net.cwmediagroup.services.FileService;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 
 public class Processor {
@@ -25,11 +29,23 @@ public class Processor {
                     location.getLongitude()
             );
 
-            if (this.configuration.terminalOutput) {
-                System.out.println(data.toJSONString());
-            }
+            this.handleOutput(data);
         }
 
+    }
+
+    private void handleOutput (@NotNull OpenMeteoResponse data){
+        String dataJson = data.toJSONString();
+        if (this.configuration.terminalOutput) {
+            System.out.println(dataJson);
+        }
+
+        if (this.configuration.useFileOutput) {
+            String fileName = data.locationName.substring(0,3)+"_"+data.current.getString("time")+".json";
+            String filePath = configuration.outputDir + File.separator + fileName;
+            FileService fileService = new FileService();
+            fileService.writeJsonFile(filePath, dataJson);
+        }
     }
 
     public Config getConfig() {
